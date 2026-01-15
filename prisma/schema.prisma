@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  companyId Int?
+  company   Company? @relation(fields: [companyId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  COMPANY
+  USER
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  logo        String?  @db.LongText
+  startDate   DateTime?
+  endDate     DateTime?
+  planName    String?
+  planId      Int?
+  plan        Plan?    @relation(fields: [planId], references: [id])
+  planType    String?
+  phone       String?
+  address     String?
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Plan {
+  id                     Int           @id @default(autoincrement())
+  name                   String
+  basePrice              Float         @default(0)
+  currency               String        @default("USD")
+  invoiceLimit           String        @default("0")
+  additionalInvoicePrice Float         @default(0)
+  userLimit              String        @default("0")
+  storageCapacity        String        @default("0")
+  billingCycle           String        @default("Monthly")
+  status                 String        @default("Active")
+  modules                Json?
+  totalPrice             Float         @default(0)
+  descriptions           Json?
+  companies              Company[]
+  planRequests           PlanRequest[]
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+}
+
+model PlanRequest {
+  id             Int      @id @default(autoincrement())
+  companyName    String
+  email          String
+  planId         Int?
+  plan           Plan?    @relation(fields: [planId], references: [id])
+  planName       String?
+  billingCycle   String   @default("Monthly")
+  startDate      DateTime
+  status         String   @default("Pending")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  transactionId String   @unique
+  date          DateTime @default(now())
+  customer      String
+  paymentMethod String
+  amount        Float
+  status        String   @default("Pending")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DashboardAnnouncement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
